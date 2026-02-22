@@ -1,0 +1,114 @@
+StudyPoint
+Extended Production PRD – Investor & Engineering Edition
+Version 2.0
+Generated on: 2026-02-15
+ 
+1. Executive Summary
+StudyPoint is a multi-tenant AI-powered SaaS platform engineered for India's autonomous higher education ecosystem. It transforms uploaded academic content into structured knowledge layers that power adaptive learning tools. This document defines a production-grade architecture, technical specifications, scalability plans, SLA matrices, database schema, API contracts, and deployment strategy.
+2. Market Positioning & Revenue Model
+Target Segments:
+• Individual Students (Freemium)
+• Colleges & Universities (Tiered SaaS Pricing)
+
+Pricing Model:
+• Individual Premium: $5/month
+• Institute SaaS: $5/user/month
+• Enterprise Tier: Custom pricing with SLA guarantees
+
+3. System Architecture
+High-Level Architecture Diagram (Textual Representation):
+Client (React/Vite)
+   ↓
+API Gateway (Flask + JWT)
+   ↓
+Service Layer (User, Content, AI, Analytics, SaaS Admin)
+   ↓
+Async Workers (Celery + Redis)
+   ↓
+AI Pipeline (Embedding, Clustering, Labeling, Graph)
+   ↓
+Storage Layer (PostgreSQL, Qdrant, S3, Neo4j)
+
+4. Multi-Tenancy & Data Isolation
+Isolation Strategy:
+• PostgreSQL schema-per-tenant
+• Qdrant collection-per-tenant
+• S3 bucket prefix per tenant
+• Dedicated audit logs
+
+5. Core Database Schema
+Table	Fields	Primary Keys	Notes
+users	id, email, role, tenant_id, preferences	id	RBAC enforced
+content	id, user_id, file_path, status, created_at	id	Async processing
+chunks	id, content_id, text, embedding_id	id	Vector references
+clusters	id, content_id, label, confidence	id	Topic groupings
+graph_edges	id, from_node, to_node, relation_type	id	Neo4j sync
+analytics	id, user_id, score, time_spent	id	Used for RL engine
+6. API Contracts (v1 Stable)
+Authentication:
+POST /api/v1/auth/login
+POST /api/v1/auth/register
+POST /api/v1/auth/refresh
+
+Content Management:
+POST /api/v1/content/upload
+GET /api/v1/content/{id}
+GET /api/v1/content/status/{job_id}
+
+AI Services:
+GET /api/v1/ai/summary/{content_id}
+POST /api/v1/ai/flashcards
+POST /api/v1/ai/tests/generate
+
+Analytics:
+GET /api/v1/analytics/user
+GET /api/v1/analytics/institute
+7. AI Processing Pipeline
+Step 1: File Upload & S3 Storage
+Step 2: Text Extraction (PyMuPDF + PaddleOCR)
+Step 3: Chunking (500 tokens, 50 overlap)
+Step 4: Embedding (all-MiniLM-L6-v2)
+Step 5: Clustering (HDBSCAN)
+Step 6: Labeling via LLM with confidence scoring
+Step 7: Knowledge Graph Construction (Neo4j)
+
+8. SLA & Performance Matrix
+Metric	Target	Monitoring Tool
+API Latency (p95)	<500ms	Prometheus
+AI Query Response	<1.5s	APM + Logs
+Vector Search	<200ms	Qdrant Metrics
+Uptime	99.9%	CloudWatch
+Upload Processing (50MB)	<10s async	Celery Monitor
+9. Security & Compliance
+• AES-256 encryption at rest
+• TLS 1.3 encryption in transit
+• JWT (15 min expiry) + refresh tokens
+• Rate limiting (100 req/min/user)
+• GDPR-compliant data deletion
+• Audit logging per tenant
+
+10. Deployment Architecture
+Infrastructure:
+• AWS EKS (Kubernetes)
+• RDS PostgreSQL
+• Elasticache Redis
+• Qdrant Cluster
+• Neo4j Managed Instance
+• S3 Object Storage
+• Nginx Ingress
+• GitHub Actions CI/CD
+
+11. Observability & Monitoring
+• Prometheus (metrics)
+• Grafana dashboards
+• Sentry (error tracking)
+• Token usage monitoring for LLM cost control
+
+12. Roadmap & Milestones
+Phase 1 (0-3 months): Individual Mode + Core AI Tools
+Phase 2 (4-6 months): Knowledge Graph + Reinforcement Engine
+Phase 3 (7-9 months): SaaS Multi-Tenancy + Billing + Chatrooms
+Phase 4 (Ongoing): Multimodal AI + LMS Integrations
+
+Conclusion
+This extended PRD defines StudyPoint as a production-ready AI SaaS infrastructure. It includes multi-tenant isolation, AI grounding, cost controls, performance SLAs, and enterprise deployment architecture.
